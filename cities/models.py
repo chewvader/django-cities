@@ -31,7 +31,7 @@ class Place(models.Model):
     def get_absolute_url(self):
         return "/".join([place.slug for place in self.hierarchy])
 
-    def __unicode__(self):
+    def __str__(self):
         return force_unicode(self.name)
 
     def __repr__(self):
@@ -59,7 +59,7 @@ class Country(Place):
     def parent(self):
         return None
 
-    def __unicode__(self):
+    def __str__(self):
         return force_unicode(self.name)
 
     def __repr__(self):
@@ -125,7 +125,7 @@ class AlternativeName(models.Model):
     is_short = models.BooleanField(default=False)
     is_colloquial = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (force_unicode(self.name), force_unicode(self.language))
 
     def __repr__(self):
@@ -164,7 +164,7 @@ class PostalCode(Place):
             force_unicode(self.name),
         ] if e]
 
-    def __unicode__(self):
+    def __str__(self):
         return force_unicode(self.code)
 
     def __repr__(self):

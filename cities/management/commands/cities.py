@@ -29,6 +29,8 @@ from django.contrib.gis.gdal.envelope import Envelope
 from ...conf import *
 from ...models import *
 from ...util import geo_distance
+from django.conf import settings as django_settings
+
 
 class Command(BaseCommand):
     app_dir = os.path.normpath(os.path.dirname(os.path.realpath(__file__)) + '/../..')
@@ -53,6 +55,10 @@ class Command(BaseCommand):
         self.options = options
 
         self.force = self.options['force']
+
+        if django_settings.DEBUG:
+            print("Disable DEBUG Before Running.")
+            return
 
         self.flushes = [e for e in self.options['flush'].split(',') if e]
         if 'all' in self.flushes: self.flushes = import_opts_all
@@ -127,28 +133,18 @@ class Command(BaseCommand):
         return uptodate
 
     def get_data(self, filekey):
+        self.logger.info("Getting data from " + filekey)
         filename = settings.files[filekey]['filename']
         file = open(os.path.join(self.data_dir, filename), 'rb')
         name, ext = filename.rsplit('.', 1)
         if (ext == 'zip'):
-            file = zipfile.ZipFile(file).open(name + '.txt', 'r')
-        if file.mode == 'rb':
-            data = (
-                dict(list(zip(settings.files[filekey]['fields'], row.decode('utf-8').split("\t")))) 
-                for row in file if not row.decode('utf-8').startswith('#')
-            )
-        else:
-            data = (
-                dict(list(zip(settings.files[filekey]['fields'], row.decode('utf-8').split("\t"))))
-                for row in file if not row.decode('utf-8').startswith('#')
-            )
             file = zipfile.ZipFile(file).open(name + '.txt')
 
         data = (
-            dict(list(zip(settings.files[filekey]['fields'], row.split("\t")))) 
-            for row in file if not row.startswith('#')
+            dict(list(zip(settings.files[filekey]['fields'], row.decode('utf8').split("\t"))))
+            for row in file
+            if not row.decode('utf8').startswith('#')
         )
-
         return data
 
     def parse(self, data):
@@ -501,11 +497,7 @@ class Command(BaseCommand):
             try:
                 pc.save()
             except Exception as e:
-<<<<<<< HEAD
-                print(("Error: {0}".format(e)))
-=======
                 print(e)
->>>>>>> f64c2af... Basic fixes with 2to3 -wn
 
     def flush_country(self):
         self.logger.info("Flushing country data")
